@@ -6,7 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+if (NOT MSVC)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+else ()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+endif()
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
@@ -23,12 +28,14 @@ elseif (APPLE)
     set(CMAKE_MACOSX_RPATH TRUE)
     set(CMAKE_BUILD_RPATH "@loader_path")
     set(CMAKE_INSTALL_RPATH "@loader_path")
+elseif (WIN32)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif ()
 
 if (NOT MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 endif ()
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 
 include(ProcessorCount)
 ProcessorCount(N)
@@ -48,6 +55,10 @@ target_include_directories(r-type_network_core PUBLIC
 if (MSVC)
     file(GLOB_RECURSE SRC_R_TYPE_NETWORK_WINDOWS "src/Platform/Windows/*.cpp")
     add_library(r-type_network SHARED ${SRC_R_TYPE_NETWORK_WINDOWS})
+    target_include_directories(r-type_network PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
     target_link_libraries(r-type_network PUBLIC r-type_network_core ws2_32)
 
 else ()
@@ -67,14 +78,13 @@ else ()
         add_library(r-type_network SHARED ${SRC_R_TYPE_NETWORK_LINUX})
     endif ()
 
+    target_include_directories(r-type_network PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
     target_link_libraries(r-type_network PUBLIC r-type_network_subplatform r-type_network_core)
     set_target_properties(r-type_network_core r-type_network_subplatform r-type_network PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif ()
-
-target_include_directories(r-type_network PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
 
 target_compile_definitions(r-type_network PRIVATE R_TYPE_NETWORK_BUILD=1)
 target_compile_definitions(r-type_network_core PRIVATE R_TYPE_NETWORK_BUILD=1)
