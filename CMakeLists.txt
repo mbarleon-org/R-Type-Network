@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 if (UNIX AND NOT APPLE)
     set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -41,7 +41,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 file(GLOB_RECURSE SRC_R_TYPE_NETWORK_CORE "src/Core/*.cpp")
 add_library(r-type_network_core SHARED ${SRC_R_TYPE_NETWORK_CORE})
 target_include_directories(r-type_network_core PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 if (MSVC)
@@ -53,7 +54,8 @@ else ()
     file(GLOB_RECURSE SRC_R_TYPE_NETWORK_POSIX "src/Subplatform/POSIX/*.cpp")
     add_library(r-type_network_subplatform SHARED ${SRC_R_TYPE_NETWORK_POSIX})
     target_include_directories(r-type_network_subplatform PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
     )
     target_link_libraries(r-type_network_subplatform PUBLIC r-type_network_core)
 
@@ -70,7 +72,8 @@ else ()
 endif ()
 
 target_include_directories(r-type_network PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_compile_definitions(r-type_network PRIVATE R_TYPE_NETWORK_BUILD=1)
@@ -131,3 +134,53 @@ if (ENABLE_DEBUG)
     endif ()
 
 endif ()
+
+include(GNUInstallDirs)
+
+install(TARGETS r-type_network_core r-type_network
+    EXPORT r-type_network-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+if (NOT MSVC)
+    install(TARGETS r-type_network_subplatform
+        EXPORT r-type_network-targets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+endif ()
+
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(EXPORT r-type_network-targets
+    FILE r-type_network-targets.cmake
+    NAMESPACE r-type_network::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/r-type_network
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/r-type_network-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/r-type_network-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/r-type_network
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/r-type_network-config-version.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/r-type_network-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/r-type_network-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/r-type_network
+)
