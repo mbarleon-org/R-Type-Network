@@ -14,7 +14,7 @@ RTYPE_NET_API ssize_t rtype::network::subplatform::sendto(Handle handle, const v
 {
     sockaddr_storage addr{};
     socklen_t addrlen = 0;
-    if (to.ip[4] || to.ip[5] || to.ip[6] || to.ip[7] || to.ip[8]) {
+    if (rtype::network::isIPv6(to)) {
         sockaddr_in6 *a6 = reinterpret_cast<sockaddr_in6 *>(&addr);
         a6->sin6_family = AF_INET6;
         a6->sin6_port = htons(to.port);
@@ -24,7 +24,7 @@ RTYPE_NET_API ssize_t rtype::network::subplatform::sendto(Handle handle, const v
         sockaddr_in *a4 = reinterpret_cast<sockaddr_in *>(&addr);
         a4->sin_family = AF_INET;
         a4->sin_port = htons(to.port);
-        std::memcpy(&a4->sin_addr, to.ip.data(), 4);
+        std::memcpy(&a4->sin_addr, to.ip.data() + rtype::network::IPv4Offset, rtype::network::IPv4Length);
         addrlen = sizeof(sockaddr_in);
     }
     return ::sendto(handle, buffer, length, flags, reinterpret_cast<sockaddr *>(&addr), addrlen);

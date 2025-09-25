@@ -42,7 +42,7 @@ static void bindSocket(int s, const rtype::network::Endpoint &e, int family)
         sockaddr_in *a4 = reinterpret_cast<sockaddr_in *>(&addr);
         a4->sin_family = AF_INET;
         a4->sin_port = htons(e.port);
-        std::memcpy(&a4->sin_addr, e.ip.data(), 4);
+        std::memcpy(&a4->sin_addr, e.ip.data() + rtype::network::IPv4Offset, rtype::network::IPv4Length);
         addrlen = sizeof(sockaddr_in);
     }
     if (::bind(s, reinterpret_cast<sockaddr *>(&addr), addrlen) == -1) {
@@ -65,7 +65,7 @@ static void listenSocket(int s, rtype::network::Protocol p)
 
 RTYPE_NET_API rtype::network::Socket rtype::network::subplatform::listen(const Endpoint &e, Protocol p)
 {
-    int family = (e.ip[4] || e.ip[5] || e.ip[6] || e.ip[7] || e.ip[8]) ? AF_INET6 : AF_INET;
+    int family = rtype::network::isIPv6(e) ? AF_INET6 : AF_INET;
     int s = createSocket(p, family);
 
     setSockOptions(s);

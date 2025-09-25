@@ -18,7 +18,7 @@ RTYPE_NET_API rtype::network::Socket rtype::network::accept(Handle serverHandle)
         auto *addr4 = reinterpret_cast<sockaddr_in *>(&clientAddr);
         result.endpoint.port = ntohs(addr4->sin_port);
         result.endpoint.ip.fill(0);
-        std::memcpy(result.endpoint.ip.data(), &addr4->sin_addr, 4);
+        std::memcpy(result.endpoint.ip.data() + rtype::network::IPv4Offset, &addr4->sin_addr, rtype::network::IPv4Length);
     } else if (clientAddr.ss_family == AF_INET6) {
         auto *addr6 = reinterpret_cast<sockaddr_in6 *>(&clientAddr);
         result.endpoint.port = ntohs(addr6->sin6_port);

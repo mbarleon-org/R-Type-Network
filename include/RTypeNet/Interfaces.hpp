@@ -2,6 +2,7 @@
 
 #include <RTypeNet/Api.hpp>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <span>
 
@@ -42,6 +43,24 @@ struct RTYPE_NET_API Endpoint {
         std::uint16_t port{};
         bool operator==(const Endpoint &other) const noexcept = default;
 };
+
+inline constexpr std::size_t IPv4Offset = 12;
+inline constexpr std::size_t IPv4Length = 4;
+
+inline bool isIPv6(const Endpoint &endpoint) noexcept
+{
+    for (std::size_t i = 0; i < IPv4Offset; ++i) {
+        if (endpoint.ip[i] != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline bool isIPv4(const Endpoint &endpoint) noexcept
+{
+    return !isIPv6(endpoint);
+}
 
 struct RTYPE_NET_API Socket {
         Endpoint endpoint{};

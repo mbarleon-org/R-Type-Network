@@ -20,7 +20,7 @@ RTYPE_NET_API ssize_t rtype::network::recvfrom(Handle handle, void *buffer, BufL
             auto *a4 = reinterpret_cast<sockaddr_in *>(&addr);
             from.port = ntohs(a4->sin_port);
             from.ip.fill(0);
-            std::memcpy(from.ip.data(), &a4->sin_addr, 4);
+            std::memcpy(from.ip.data() + rtype::network::IPv4Offset, &a4->sin_addr, rtype::network::IPv4Length);
         } else if (addr.ss_family == AF_INET6) {
             auto *a6 = reinterpret_cast<sockaddr_in6 *>(&addr);
             from.port = ntohs(a6->sin6_port);
