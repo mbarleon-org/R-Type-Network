@@ -1,5 +1,7 @@
 #include <RTypeNet/Clock.hpp>
 #include <RTypeNet/Subplatform/Clock.hpp>
-#include <RTypeNet/Subplatform/ForwardFunction.hpp>
 
-RTYPE_NET_FWD_FUNC(RTYPE_NET_API, , now_ns, , )
+RTYPE_NET_API uint64_t rtype::network::now_ns() noexcept
+{
+    return subplatform::now_ns();
+}

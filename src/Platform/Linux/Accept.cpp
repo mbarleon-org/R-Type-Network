@@ -1,5 +1,7 @@
 #include <RTypeNet/Accept.hpp>
 #include <RTypeNet/Subplatform/Accept.hpp>
-#include <RTypeNet/Subplatform/ForwardFunction.hpp>
 
-RTYPE_NET_FWD_FUNC(RTYPE_NET_API, , accept, , )
+RTYPE_NET_API rtype::network::Socket rtype::network::accept(Handle serverHandle)
+{
+    return subplatform::accept(serverHandle);
+}
