@@ -3,6 +3,12 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+static void setFlags(SOCKET sock)
+{
+    u_long mode = 1;
+    ioctlsocket(sock, FIONBIO, &mode);
+}
+
 RTYPE_NET_API rtype::network::Socket rtype::network::accept(Handle serverHandle)
 {
     sockaddr_storage clientAddr{};
@@ -12,6 +18,7 @@ RTYPE_NET_API rtype::network::Socket rtype::network::accept(Handle serverHandle)
     if (clientSocket == INVALID_SOCKET) {
         throw std::system_error(WSAGetLastError(), std::system_category(), "accept failed");
     }
+    setFlags(clientSocket);
     Socket result{};
     result.handle = clientSocket;
     if (clientAddr.ss_family == AF_INET) {

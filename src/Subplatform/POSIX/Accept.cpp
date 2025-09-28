@@ -1,9 +1,23 @@
 #include <RTypeNet/Subplatform/Accept.hpp>
 #include <cerrno>
 #include <cstring>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <system_error>
+#include <unistd.h>
+
+static void setFlags(int fd)
+{
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags != -1) {
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    }
+    flags = fcntl(fd, F_GETFD, 0);
+    if (flags != -1) {
+        fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+    }
+}
 
 RTYPE_NET_API rtype::network::Socket rtype::network::subplatform::accept(Handle serverHandle)
 {
@@ -14,6 +28,7 @@ RTYPE_NET_API rtype::network::Socket rtype::network::subplatform::accept(Handle 
     if (clientSocket == -1) {
         throw std::system_error(errno, std::system_category(), "accept failed");
     }
+    setFlags(clientSocket);
     Socket result{};
     result.handle = clientSocket;
     if (clientAddr.ss_family == AF_INET) {
