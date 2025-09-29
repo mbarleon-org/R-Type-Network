@@ -5,6 +5,6 @@
 
 namespace rtype::network::subplatform {
 
-[[nodiscard]] RTYPE_NET_API Handle connect(Handle handle, const Endpoint &e) noexcept;
+[[nodiscard]] RTYPE_NET_API Handle connect(const Endpoint &mine, const Endpoint &endpoint, Protocol p) noexcept;
 
 }// namespace rtype::network::subplatform
