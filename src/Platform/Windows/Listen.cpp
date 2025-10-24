@@ -14,7 +14,7 @@ static SOCKET createSocket(rtype::network::Protocol p, int family)
     return s;
 }
 
-static void setSockOptions(SOCKET s)
+static void setSockOptions(SOCKET s, rtype::network::Protocol p)
 {
     int yes = 1;
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&yes), sizeof(yes)) == SOCKET_ERROR) {
@@ -22,7 +22,8 @@ static void setSockOptions(SOCKET s)
         ::closesocket(s);
         throw std::system_error(err, std::system_category(), "setsockopt SO_REUSEADDR failed");
     }
-    if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char *>(&yes), sizeof(yes)) == SOCKET_ERROR) {
+    if (p == rtype::network::Protocol::UDP &&
+        setsockopt(s, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char *>(&yes), sizeof(yes)) == SOCKET_ERROR) {
         int err = WSAGetLastError();
         ::closesocket(s);
         throw std::system_error(err, std::system_category(), "setsockopt SO_BROADCAST failed");
@@ -74,7 +75,7 @@ RTYPE_NET_API rtype::network::Socket rtype::network::listen(const Endpoint &e, P
     int family = rtype::network::isIPv6(e) ? AF_INET6 : AF_INET;
     SOCKET s = createSocket(p, family);
 
-    setSockOptions(s);
+    setSockOptions(s, p);
     bindSocket(s, e, family);
     listenSocket(s, p);
     Socket result{};

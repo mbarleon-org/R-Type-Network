@@ -20,7 +20,7 @@ static int createSocket(rtype::network::Protocol p, int family)
     return s;
 }
 
-static void setSockOptions(int s, rtype::network::Protocol p)
+static void setSockOptions(int s)
 {
     int yes = 1;
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
@@ -73,12 +73,12 @@ static void listenSocket(int s, rtype::network::Protocol p)
     }
 }
 
-RTYPE_NET_API rtype::network::Socket rtype::network::subplatform::listen(const Endpoint &e, Protocol p)
+RTYPE_NET_API rtype::network::Socket rtype::network::listen(const Endpoint &e, Protocol p)
 {
     int family = rtype::network::isIPv6(e) ? AF_INET6 : AF_INET;
     int s = createSocket(p, family);
 
-    setSockOptions(s, p);
+    setSockOptions(s);
     bindSocket(s, e, family);
     listenSocket(s, p);
     Socket result{};
