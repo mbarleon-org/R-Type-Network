@@ -49,18 +49,28 @@ inline constexpr std::size_t IPv4Length = 4;
 
 inline bool isIPv6(const Endpoint &endpoint) noexcept
 {
-    std::size_t i = 0;
-    for (; i < IPv4Offset - 2; ++i) {
+    bool first12_zero = true;
+
+    for (std::size_t i = 0; i < IPv4Offset; ++i) {
         if (endpoint.ip[i] != 0) {
-            return true;
+            first12_zero = false;
+            break;
         }
     }
-    for (; i < IPv4Offset; ++i) {
-        if (endpoint.ip[i] != 0xff) {
-            return true;
+    if (first12_zero) {
+        return false;
+    }
+    bool first10_zero = true;
+    for (std::size_t i = 0; i < IPv4Offset - 2; ++i) {
+        if (endpoint.ip[i] != 0) {
+            first10_zero = false;
+            break;
         }
     }
-    return false;
+    if (first10_zero && endpoint.ip[10] == 0xff && endpoint.ip[11] == 0xff) {
+        return false;
+    }
+    return true;
 }
 
 inline bool isIPv4(const Endpoint &endpoint) noexcept

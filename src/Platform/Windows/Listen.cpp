@@ -22,6 +22,11 @@ static void setSockOptions(SOCKET s)
         ::closesocket(s);
         throw std::system_error(err, std::system_category(), "setsockopt SO_REUSEADDR failed");
     }
+    if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char *>(&yes), sizeof(yes)) == SOCKET_ERROR) {
+        int err = WSAGetLastError();
+        ::closesocket(s);
+        throw std::system_error(err, std::system_category(), "setsockopt SO_BROADCAST failed");
+    }
 }
 
 static void bindSocket(SOCKET s, const rtype::network::Endpoint &e, int family)
@@ -39,7 +44,11 @@ static void bindSocket(SOCKET s, const rtype::network::Endpoint &e, int family)
         sockaddr_in *a4 = reinterpret_cast<sockaddr_in *>(&addr);
         a4->sin_family = AF_INET;
         a4->sin_port = htons(e.port);
-        std::memcpy(&a4->sin_addr, e.ip.data() + rtype::network::IPv4Offset, rtype::network::IPv4Length);
+        if (e.port != 0 && ::memcmp(e.ip.data() + rtype::network::IPv4Offset, "\0\0\0\0", 4) == 0) {
+            a4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        } else {
+            std::memcpy(&a4->sin_addr, e.ip.data() + rtype::network::IPv4Offset, rtype::network::IPv4Length);
+        }
         addrlen = sizeof(sockaddr_in);
     }
     if (::bind(s, reinterpret_cast<sockaddr *>(&addr), addrlen) == SOCKET_ERROR) {
