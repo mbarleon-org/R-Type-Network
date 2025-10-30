@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  Server for R-Type project<br>
+  Mutliplatform networking lib for R-Type project<br>
 </p>
 
 ---
@@ -15,7 +15,7 @@
 Clone the repository
 
 ```bash
-git clone --recurse-submodules git@github.com:mbarleon/R-Type-Server.git
+git clone git@github.com:mbarleon/R-Type-Network.git
 ```
 
 ---
